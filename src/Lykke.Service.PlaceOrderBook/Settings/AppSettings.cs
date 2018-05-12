@@ -9,5 +9,6 @@ namespace Lykke.Service.PlaceOrderBook.Settings
     {
         public PlaceOrderBookSettings PlaceOrderBookService { get; set; }
         public SlackNotificationsSettings SlackNotifications { get; set; }
+        public BalancesServiceClient BalancesServiceClient { get; set; }
     }
 }

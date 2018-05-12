@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using AzureStorage.Tables;
 using Common.Log;
@@ -8,14 +10,18 @@ using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
 using Lykke.Service.PlaceOrderBook.Core.Services;
+using Lykke.Service.PlaceOrderBook.Middleware;
 using Lykke.Service.PlaceOrderBook.Settings;
 using Lykke.Service.PlaceOrderBook.Modules;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.JsonPatch.Operations;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.PlaceOrderBook
 {
@@ -25,6 +31,7 @@ namespace Lykke.Service.PlaceOrderBook
         public IContainer ApplicationContainer { get; private set; }
         public IConfigurationRoot Configuration { get; }
         public ILog Log { get; private set; }
+        private IReloadingManager<AppSettings> _appSettings;
 
         public Startup(IHostingEnvironment env)
         {
@@ -50,16 +57,23 @@ namespace Lykke.Service.PlaceOrderBook
                 services.AddSwaggerGen(options =>
                 {
                     options.DefaultLykkeConfiguration("v1", "PlaceOrderBook API");
+                    options.OperationFilter<AddLykkeAuthorizationHeaderFilter>();
                 });
 
                 var builder = new ContainerBuilder();
-                var appSettings = Configuration.LoadSettings<AppSettings>();
+                _appSettings = Configuration.LoadSettings<AppSettings>();
 
-                Log = CreateLogWithSlack(services, appSettings);
+                XApiKeyAuthAttribute.Credentials = _appSettings.CurrentValue.PlaceOrderBookService.TrustedClientIds.ToDictionary(e => e, e=> e);
 
-                builder.RegisterInstance(appSettings.CurrentValue.PlaceOrderBookService);
+                Log = CreateLogWithSlack(services, _appSettings);
 
-                builder.RegisterModule(new ServiceModule(appSettings.Nested(x => x.PlaceOrderBookService), Log));
+                builder.RegisterInstance(_appSettings.CurrentValue.PlaceOrderBookService);
+
+                builder.RegisterModule(new ServiceModule(
+                    _appSettings.Nested(x => x.PlaceOrderBookService),
+                    _appSettings.Nested(x => x.BalancesServiceClient), 
+                    Log));
+
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
 
@@ -84,11 +98,16 @@ namespace Lykke.Service.PlaceOrderBook
                 app.UseLykkeForwardedHeaders();
                 app.UseLykkeMiddleware("PlaceOrderBook", ex => new { Message = "Technical problem" });
 
+                app.UseAuthenticationMiddleware(_appSettings, Log);
+
                 app.UseMvc();
                 app.UseSwagger(c =>
                 {
                     c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
                 });
+
+               
+
                 app.UseSwaggerUI(x =>
                 {
                     x.RoutePrefix = "swagger/ui";

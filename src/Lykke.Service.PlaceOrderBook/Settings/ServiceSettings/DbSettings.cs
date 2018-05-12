@@ -6,5 +6,8 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
     {
         [AzureTableCheck]
         public string LogsConnString { get; set; }
+
+        [AzureTableCheck]
+        public string DataConnString { get; set; }
     }
 }

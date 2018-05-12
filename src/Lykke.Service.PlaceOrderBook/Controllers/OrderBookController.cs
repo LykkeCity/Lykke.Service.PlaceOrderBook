@@ -55,7 +55,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
                 }).ToList()
             };
 
-            Console.WriteLine(mlm.ToJson());
+            //Console.WriteLine(mlm.ToJson());
 
             var res = await _meclient.PlaceMultiLimitOrderAsync(mlm);
             return Ok(res.Statuses.ToList());
@@ -74,7 +74,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         [SwaggerOperation("ReplaceLimitOrder")]
         [ProducesResponseType(typeof(List<LimitOrderStatusModel>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> ReplaceLimitOrder([FromBody]Order model, [FromQuery]string clientId, [FromQuery]string assetPair, [FromQuery]string oldOrderId)
+        public async Task<IActionResult> ReplaceLimitOrder([FromBody]Order1 model, [FromQuery]string clientId, [FromQuery]string assetPair, [FromQuery]string oldOrderId)
         {
             if (!_settings.TrustedClientIds.Contains(oldOrderId))
             {
@@ -107,10 +107,10 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
     {
         public string ClientId { get; set; }
         public string AssetPair { get; set; }
-        public List<Order> Orders { get; set; }
+        public List<Order1> Orders { get; set; }
     }
 
-    public class Order
+    public class Order1
     {
         public string TradeType { get; set; }
         public double Price { get; set; }
