@@ -104,16 +104,20 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
             return BadRequest($"incorect result: {status}");
         }
 
-        [HttpPost("cancelOrder")]
+        //[HttpPost("cancelOrder")]
+        //[XApiKeyAuth]
+        //[SwaggerOperation("CancelLimitOrder")]
+        //[ProducesResponseType(typeof(CancelLimitOrderResponse), 200)]
+        //public async Task<IActionResult> CancelLimitOrder([FromBody] CancelLimitOrderRequest request)
+        [HttpPost("CancelLimitOrder")]
         [XApiKeyAuth]
-        [SwaggerOperation("CancelLimitOrder")]
-        [ProducesResponseType(typeof(CancelLimitOrderResponse), 200)]
-        public async Task<IActionResult> CancelLimitOrder(CancelLimitOrderRequest request)
+        public async Task<IActionResult> CancelLimitOrder([FromBody] CancelLimitOrderRequest request)
         {
-            await _meclient.CancelLimitOrderAsync(request.OrderId);
+            await Task.Delay(100);
+            //await _meclient.CancelLimitOrderAsync(request.OrderId);
             var resp = new CancelLimitOrderResponse()
             {
-                OrderId = request.OrderId
+                OrderId = request?.OrderId
             };
             return Ok(resp);
         }

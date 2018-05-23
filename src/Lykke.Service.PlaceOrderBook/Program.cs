@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Lykke.Common.ExchangeAdapter.SpotController.Records;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.PlatformAbstractions;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.PlaceOrderBook
 {
