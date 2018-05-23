@@ -29,7 +29,7 @@
   <ItemGroup>
     <PackageReference Include="Lykke.AzureStorage" Version="8.3.0" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.7.0" />
-    <PackageReference Include="Lykke.Common.ExchangeAdapter" Version="1.0.9" />
+    <PackageReference Include="Lykke.Common.ExchangeAdapter" Version="1.0.20" />
     <PackageReference Include="Lykke.Logs" Version="4.3.1" />
     <PackageReference Include="Lykke.MatchingEngineConnector" Version="5.0.3" />
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.0.0" />

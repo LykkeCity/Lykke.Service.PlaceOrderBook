@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.Common.ExchangeAdapter.SpotController.Records;
 using Lykke.MatchingEngine.Connector.Abstractions.Models;
 using Lykke.MatchingEngine.Connector.Abstractions.Services;
 using Lykke.Service.Balances.Client;
@@ -35,15 +36,15 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         [HttpGet("getWallets")]
         [XApiKeyAuth]
         [SwaggerOperation("GetWallets")]
-        public async Task<WalletsResponse> GetWallets()
+        public async Task<GetWalletsResponse> GetWallets()
         {
-            var responce = new WalletsResponse();
+            var responce = new GetWalletsResponse();
 
             var clientId = this.ClientId();
 
             var balaces = (await _balancesClient.GetClientBalances(clientId)).ToDictionary(e => e.AssetId, e => e);
 
-            responce.Wallets = _settings.BalanceAssets.Select(e => new Wallet()
+            responce.Wallets = _settings.BalanceAssets.Select(e => new WalletBalanceModel()
             {
                 Asset = e,
                 Balance = balaces.ContainsKey(e) ? balaces[e].Balance : 0,
@@ -64,7 +65,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
 
         [HttpPost("createLimitOrder")]
         [XApiKeyAuth]
-        public async Task<IActionResult> CreateLimitOrder([FromBody] CreateLimitOrderCommand order)
+        public async Task<IActionResult> CreateLimitOrder([FromBody] LimitOrderRequest order)
         {
             var orderId = Guid.NewGuid().ToString();
             var mlm = new MultiLimitOrderModel()
@@ -82,7 +83,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
                             Fee = null,
                             OldId = null,
                             Price = (double)order.Price,
-                            Volume = (double)order.Amount
+                            Volume = (double)order.Volume
                         }
                     }
             };
@@ -92,9 +93,9 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
             var status = res.Statuses.Any() ? res.Statuses[0].Status : MeStatusCodes.BadRequest;
             if (status == MeStatusCodes.Ok)
             {
-                var resp = new LimitOrderCreated()
+                var resp = new OrderIdResponse()
                 {
-                    Id = orderId
+                    OrderId = orderId
                 };
 
                 return Ok(resp);
@@ -106,11 +107,15 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         [HttpPost("cancelOrder")]
         [XApiKeyAuth]
         [SwaggerOperation("CancelLimitOrder")]
-        [ProducesResponseType(typeof(ContainsOrderId), 200)]
-        public async Task<IActionResult> CancelLimitOrder(ContainsOrderId request)
+        [ProducesResponseType(typeof(CancelLimitOrderResponse), 200)]
+        public async Task<IActionResult> CancelLimitOrder(CancelLimitOrderRequest request)
         {
             await _meclient.CancelLimitOrderAsync(request.OrderId);
-            return Ok();
+            var resp = new CancelLimitOrderResponse()
+            {
+                OrderId = request.OrderId
+            };
+            return Ok(resp);
         }
 
         [HttpGet("LimitOrderStatus")]
@@ -130,18 +135,18 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
             if (order == null)
                 return BadRequest("Order not found");
 
-            var result = new Lykke.Common.ExchangeAdapter.Contracts.Order()
+            var result = new OrderModel()
             {
-                OrderId = order.OrderId,
+                Id = order.OrderId,
                 AvgExecutionPrice = order.AvgExecutionPrice,
-                Status = Enum.Parse<OrderStatus>(order.Status),
+                ExecutionStatus = Enum.Parse<OrderStatus>(order.Status),
                 Price = order.Price,
                 TradeType = Enum.Parse<TradeType>(order.TradeType),
                 RemainingAmount = order.RemainingAmount,
-                Instrument = order.Instrument,
-                ExecutedAmount = order.ExecutedAmount,
-                CreatedTime = order.CreatedTime,
-                OriginalAmount = order.OriginalAmount
+                Symbol = order.Instrument,
+                ExecutedVolume = order.ExecutedAmount,
+                Timestamp = order.CreatedTime,
+                OriginalVolume = order.OriginalAmount
             };
 
             return Ok(result);
