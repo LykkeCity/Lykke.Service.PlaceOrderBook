@@ -109,9 +109,9 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         //[SwaggerOperation("CancelLimitOrder")]
         //[ProducesResponseType(typeof(CancelLimitOrderResponse), 200)]
         //public async Task<IActionResult> CancelLimitOrder([FromBody] CancelLimitOrderRequest request)
-        [HttpPost("CancelLimitOrder")]
+        [HttpPost("cancelOrder")]
         [XApiKeyAuth]
-        public async Task<IActionResult> CancelLimitOrder([FromBody] CancelLimitOrderRequest request)
+        public async Task<IActionResult> CancelOrder([FromBody] CancelLimitOrderRequest request)
         {
             if (request?.OrderId == null)
             {
