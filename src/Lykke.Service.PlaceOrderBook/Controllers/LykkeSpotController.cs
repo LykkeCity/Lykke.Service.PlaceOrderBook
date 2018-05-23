@@ -113,8 +113,11 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         [XApiKeyAuth]
         public async Task<IActionResult> CancelLimitOrder([FromBody] CancelLimitOrderRequest request)
         {
-            await Task.Delay(100);
-            //await _meclient.CancelLimitOrderAsync(request.OrderId);
+            if (request?.OrderId == null)
+            {
+                return BadRequest("Incorect parameters - null");
+            }
+            await _meclient.CancelLimitOrderAsync(request.OrderId);
             var resp = new CancelLimitOrderResponse()
             {
                 OrderId = request?.OrderId
