@@ -74,7 +74,7 @@ namespace Lykke.Service.PlaceOrderBook.Services
                 return;
             }
 
-            var orderboks = _generator.GenerateOrderBooks(config.Source, config.AssetPairId, feed.Ask, feed.Bid, config.Count, config.PriceDelta);
+            var orderboks = _generator.GenerateOrderBooks(config.AssetPairId, feed.Ask, feed.Bid, config.Count, config.PriceDelta);
 
             orderboks.ForEach(ob => _publisher.Publish(ob).GetAwaiter().GetResult());
         }

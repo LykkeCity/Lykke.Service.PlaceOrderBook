@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.MatchingEngine.ExchangeModels;
 
 namespace Lykke.Service.PlaceOrderBook.Core.Domain.Simulation
 {
     public class OrderbookGenerator
     {
-        private const decimal Volume = 100;
+        private const double Volume = 100;
 
-        public IReadOnlyList<OrderBook> GenerateOrderBooks(string source, string assetPairId, double ask, double bid, 
+        public IReadOnlyList<OrderBook> GenerateOrderBooks(string assetPairId, double ask, double bid, 
             int count, double priceDelta)
         {
             var list = new List<OrderBook>();
@@ -21,30 +21,36 @@ namespace Lykke.Service.PlaceOrderBook.Core.Domain.Simulation
                 var buyPrice =  bid + priceDeviation >= 0 ? bid + priceDeviation : bid;
 
                 // sell orderbook
-
-                list.Add(new OrderBook(
-                    source,
-                    assetPairId,
-                    DateTime.UtcNow,
-                    new[] // asks
+                list.Add(new OrderBook
+                {
+                    AssetPair = assetPairId,
+                    IsBuy = false,
+                    Timestamp = DateTime.UtcNow,
+                    Prices = new List<VolumePrice>
                     {
-                        new OrderBookItem((decimal)sellPrice, Volume)
-                    },
-                    new OrderBookItem[0] // bids
-                ));
-
-                // buy orderbook
-
-                list.Add(new OrderBook(
-                    source,
-                    assetPairId,
-                    DateTime.UtcNow,
-                    new OrderBookItem[0], // asks
-                    new [] // bids
-                    {
-                        new OrderBookItem((decimal)buyPrice, Volume)
+                        new VolumePrice
+                        {
+                            Price = sellPrice,
+                            Volume = Volume
+                        }
                     }
-                ));
+                });
+                
+                // buy orderbook
+                list.Add(new OrderBook
+                {
+                    AssetPair = assetPairId,
+                    IsBuy = true,
+                    Timestamp = DateTime.UtcNow,
+                    Prices = new List<VolumePrice>
+                    {
+                        new VolumePrice
+                        {
+                            Price = buyPrice,
+                            Volume = Volume
+                        }
+                    }
+                });
             }
 
             return list;

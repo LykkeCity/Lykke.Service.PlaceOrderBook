@@ -4,12 +4,11 @@ using Autofac;
 using Common;
 using Common.Log;
 using JetBrains.Annotations;
-using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.MatchingEngine.ExchangeModels;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.PlaceOrderBook.Core.Messaging;
 using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
-using Newtonsoft.Json;
 
 namespace Lykke.Service.PlaceOrderBook.RabbitMq
 {

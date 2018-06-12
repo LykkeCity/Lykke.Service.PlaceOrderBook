@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.MatchingEngine.ExchangeModels;
 
 namespace Lykke.Service.PlaceOrderBook.Core.Messaging
 {
