@@ -71,7 +71,8 @@ namespace Lykke.Service.PlaceOrderBook
 
                 builder.RegisterModule(new ServiceModule(
                     _appSettings.Nested(x => x.PlaceOrderBookService),
-                    _appSettings.Nested(x => x.BalancesServiceClient), 
+                    _appSettings.Nested(x => x.BalancesServiceClient),
+                    _appSettings.Nested(x => x.RateCalculatorServiceClient),
                     Log));
 
                 builder.Populate(services);

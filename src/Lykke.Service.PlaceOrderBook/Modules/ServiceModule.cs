@@ -8,10 +8,13 @@ using Common.Log;
 using Lykke.MatchingEngine.Connector.Services;
 using Lykke.Service.Balances.Client;
 using Lykke.Service.PlaceOrderBook.AzureRepositories;
+using Lykke.Service.PlaceOrderBook.Core.Messaging;
 using Lykke.Service.PlaceOrderBook.Core.Services;
 using Lykke.Service.PlaceOrderBook.RabbitMq;
 using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
 using Lykke.Service.PlaceOrderBook.Services;
+using Lykke.Service.PlaceOrderBook.Settings;
+using Lykke.Service.RateCalculator.Client;
 using Lykke.SettingsReader;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,15 +24,21 @@ namespace Lykke.Service.PlaceOrderBook.Modules
     {
         private readonly IReloadingManager<PlaceOrderBookSettings> _settings;
         private readonly IReloadingManager<BalancesServiceClient> _balanceClientSetting;
+        private readonly IReloadingManager<RateCalculatorServiceClient> _rateCalculatorClientSetting;
 
         private readonly ILog _log;
         // NOTE: you can remove it if you don't need to use IServiceCollection extensions to register service specific dependencies
         private readonly IServiceCollection _services;
 
-        public ServiceModule(IReloadingManager<PlaceOrderBookSettings> settings, IReloadingManager<BalancesServiceClient> balanceClientSetting, ILog log)
+        public ServiceModule
+            (IReloadingManager<PlaceOrderBookSettings> settings, 
+            IReloadingManager<BalancesServiceClient> balanceClientSetting,
+            IReloadingManager<RateCalculatorServiceClient> rateCalculatorClientSetting,
+            ILog log)
         {
             _settings = settings;
             _balanceClientSetting = balanceClientSetting;
+            _rateCalculatorClientSetting = rateCalculatorClientSetting;
             _log = log;
 
             _services = new ServiceCollection();
@@ -77,9 +86,23 @@ namespace Lykke.Service.PlaceOrderBook.Modules
                 .AutoActivate()
                 .SingleInstance();
 
+            builder.RegisterType<OrderbookSourcePublisher>()
+                .As<IStartable>()
+                .As<IStopable>()
+                .As<IOrderbookSourcePublisher>()
+                .WithParameter("settings", _settings.CurrentValue.OrderbookSourceSettings)
+                .AutoActivate()
+                .SingleInstance();
+
+            builder.RegisterType<OrderbookSourceService>()
+                .As<IOrderbookSourceService>()
+                .SingleInstance();
+
             builder.RegisterBalancesClient(_balanceClientSetting.CurrentValue.ServiceUrl, _log);
 
             builder.BindMeClient(endPoint, socketLog);
+
+            builder.RegisterRateCalculatorClient(_rateCalculatorClientSetting.CurrentValue.ServiceUrl, _log);
 
             builder.Populate(_services);
         }

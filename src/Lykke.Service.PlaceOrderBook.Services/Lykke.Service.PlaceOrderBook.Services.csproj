@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="6.8.1" />
+    <PackageReference Include="Lykke.Service.RateCalculator.Client" Version="1.0.15" />
   </ItemGroup>
 
   <ItemGroup>

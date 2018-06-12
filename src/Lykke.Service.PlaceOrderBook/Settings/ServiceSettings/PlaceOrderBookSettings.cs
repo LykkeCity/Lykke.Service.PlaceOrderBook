@@ -16,6 +16,8 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
         public List<string> BalanceAssets { get; set; }
 
         public ExchangeSettings LykkeTrade { get; set; }
+
+        public OrderbookSourceSettings OrderbookSourceSettings { get; set; }
     }
 
     public class MatchingEngineSettings
@@ -44,5 +46,12 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
     {
         [HttpCheck("api/isalive")]
         public string ServiceUrl { get; set; }
+    }
+
+    public class OrderbookSourceSettings
+    {
+        [AmqpCheck]
+        public string ConnectionString { get; set; }
+        public string Exchange { get; set; }
     }
 }
