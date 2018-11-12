@@ -2,10 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
+using FluentValidation.AspNetCore;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Logs;
@@ -17,11 +18,8 @@ using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.JsonPatch.Operations;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.PlaceOrderBook
 {
@@ -52,7 +50,8 @@ namespace Lykke.Service.PlaceOrderBook
                     {
                         options.SerializerSettings.ContractResolver =
                             new Newtonsoft.Json.Serialization.DefaultContractResolver();
-                    });
+                    })
+                    .AddFluentValidation(o => o.RegisterValidatorsFromAssemblyContaining<Startup>());
 
                 services.AddSwaggerGen(options =>
                 {
@@ -107,14 +106,16 @@ namespace Lykke.Service.PlaceOrderBook
                     c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
                 });
 
-               
-
                 app.UseSwaggerUI(x =>
                 {
                     x.RoutePrefix = "swagger/ui";
                     x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
                 });
                 app.UseStaticFiles();
+
+                Mapper.Initialize(cfg => {
+                    cfg.AddProfile<AutoMapperProfile>();
+                });
 
                 appLifetime.ApplicationStarted.Register(() => StartApplication().GetAwaiter().GetResult());
                 appLifetime.ApplicationStopping.Register(() => StopApplication().GetAwaiter().GetResult());

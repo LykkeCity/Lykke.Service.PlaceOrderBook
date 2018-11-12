@@ -11,6 +11,7 @@ using Lykke.Service.PlaceOrderBook.AzureRepositories;
 using Lykke.Service.PlaceOrderBook.Core.Messaging;
 using Lykke.Service.PlaceOrderBook.Core.Services;
 using Lykke.Service.PlaceOrderBook.RabbitMq;
+using Lykke.Service.PlaceOrderBook.RabbitMq.Publishers;
 using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
 using Lykke.Service.PlaceOrderBook.Services;
 using Lykke.Service.PlaceOrderBook.Settings;
@@ -92,6 +93,26 @@ namespace Lykke.Service.PlaceOrderBook.Modules
                 .As<IOrderbookSourcePublisher>()
                 .WithParameter("settings", _settings.CurrentValue.OrderbookSourceSettings)
                 .AutoActivate()
+                .SingleInstance();
+
+            builder.RegisterType<IndexTickPricePublisher>()
+                .As<IStartable>()
+                .As<IStopable>()
+                .AsSelf()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.Indices.IndexTickPriceExchange))
+                .AutoActivate()
+                .SingleInstance();
+
+            builder.RegisterType<TickPricePublisher>()
+                .As<IStartable>()
+                .As<IStopable>()
+                .AsSelf()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.Indices.TickPriceExchange))
+                .AutoActivate()
+                .SingleInstance();
+
+            builder.RegisterType<IndexTickPriceBatchPublisher>()
+                .As<IIndexTickPriceBatchPublisher>()
                 .SingleInstance();
 
             builder.RegisterType<OrderbookSourceService>()
