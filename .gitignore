@@ -33,6 +33,7 @@
 [Dd]ebug/
 [Rr]elease/
 ipch/
+*.Client.xml
 
 # Visual Studio project upgrade
 [Bb]ackup/

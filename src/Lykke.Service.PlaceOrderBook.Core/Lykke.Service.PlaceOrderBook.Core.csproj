@@ -8,9 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="6.8.1" />
+    <PackageReference Include="Lykke.Common" Version="7.0.4" />
     <PackageReference Include="Lykke.Common.ExchangeAdapter" Version="1.1.0" />
     <PackageReference Include="Lykke.MatchingEngine.ExchangeModels" Version="1.0.3" />
+    <PackageReference Include="Lykke.Service.CryptoIndex.Contract" Version="0.0.1" />
   </ItemGroup>
 
 </Project>

@@ -18,6 +18,8 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
         public ExchangeSettings LykkeTrade { get; set; }
 
         public OrderbookSourceSettings OrderbookSourceSettings { get; set; }
+
+        public IndicesSettings Indices { get; set; }
     }
 
     public class MatchingEngineSettings
