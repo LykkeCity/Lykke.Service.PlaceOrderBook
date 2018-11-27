@@ -1,18 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>Lykke.Service.PlaceOrderBook.Services</AssemblyName>
-    <RootNamespace>Lykke.Service.PlaceOrderBook.Services</RootNamespace>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <Version>1.0.0</Version>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Lykke.Service.RateCalculator.Client" Version="1.0.15" />
+    <PackageReference Include="Lykke.Service.RateCalculator.Client" Version="1.2.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Lykke.Service.PlaceOrderBook.Core\Lykke.Service.PlaceOrderBook.Core.csproj" />
   </ItemGroup>
-
 </Project>

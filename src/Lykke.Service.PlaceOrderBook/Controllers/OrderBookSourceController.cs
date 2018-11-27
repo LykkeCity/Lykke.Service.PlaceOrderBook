@@ -9,9 +9,9 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
     [Route("api/[controller]")]
     public class OrderBookSourceController : Controller
     {
-        private readonly IOrderbookSourceService _service;
+        private readonly IOrderBookSourceService _service;
 
-        public OrderBookSourceController(IOrderbookSourceService service)
+        public OrderBookSourceController(IOrderBookSourceService service)
         {
             _service = service;
         }
@@ -23,9 +23,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         public IActionResult Configuration([FromBody] OrderbookSourceConfigurationViewModel vm)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             _service.Configure(vm.ToModel());
 

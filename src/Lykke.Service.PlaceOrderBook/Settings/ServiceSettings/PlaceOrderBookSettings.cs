@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
+using Lykke.Service.PlaceOrderBook.Settings.Clients.MatchingEngine;
 using Lykke.SettingsReader.Attributes;
 
 namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
@@ -9,7 +10,7 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
     {
         public DbSettings Db { get; set; }
 
-        public MatchingEngineSettings MatchingEngine { get; set;  }
+        public MatchingEngineClientSettings MatchingEngine { get; set;  }
 
         public List<string> TrustedClientIds { get; set; }
 
@@ -22,18 +23,6 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
         public IndicesSettings Indices { get; set; }
     }
 
-    public class MatchingEngineSettings
-    {
-        public IpEndpointSettings IpEndpoint { get; set; }
-    }
-
-    public class IpEndpointSettings
-    {
-        public string Host { get; set; }
-
-        public int Port { get; set; }
-    }
-
     public class ExchangeSettings
     {
         [AmqpCheck]
@@ -44,16 +33,11 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
         public string QueueSuffix { get; set; }
     }
 
-    public class BalancesServiceClient
-    {
-        [HttpCheck("api/isalive")]
-        public string ServiceUrl { get; set; }
-    }
-
     public class OrderbookSourceSettings
     {
         [AmqpCheck]
         public string ConnectionString { get; set; }
+        
         public string Exchange { get; set; }
     }
 }

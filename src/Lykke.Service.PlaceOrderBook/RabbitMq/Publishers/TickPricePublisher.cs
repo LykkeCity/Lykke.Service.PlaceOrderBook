@@ -1,10 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Autofac;
 using Common;
-using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.Common.Log;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.PlaceOrderBook.Settings.Rabbit;
@@ -14,23 +13,15 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq.Publishers
     [UsedImplicitly]
     public class TickPricePublisher : IStartable, IStopable
     {
-        private readonly RabbitMqPublisher<TickPrice> _publisher;
+        private readonly PublisherSettings _publisherSettings;
+        private readonly ILogFactory _logFactory;
 
-        public TickPricePublisher(ILog logger, PublisherSettings settings)
+        private RabbitMqPublisher<TickPrice> _publisher;
+
+        public TickPricePublisher(PublisherSettings publisherSettings, ILogFactory logFactory)
         {
-            var publisherSettings = new RabbitMqSubscriptionSettings
-            {
-                ConnectionString = settings.ConnectionString,
-                ExchangeName = settings.Exchange,
-                IsDurable = settings.IsDurable
-            };
-
-            _publisher = new RabbitMqPublisher<TickPrice>(publisherSettings)
-                .DisableInMemoryQueuePersistence()
-                .SetSerializer(new GenericRabbitModelConverter<TickPrice>())
-                .SetLogger(logger)
-                .SetPublishStrategy(new DefaultFanoutPublishStrategy(publisherSettings))
-                .PublishSynchronously();
+            _publisherSettings = publisherSettings;
+            _logFactory = logFactory;
         }
 
         public Task Publish(TickPrice message)
@@ -40,17 +31,25 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq.Publishers
 
         public void Start()
         {
-            _publisher.Start();
+            var settings = RabbitMqSubscriptionSettings
+                .ForPublisher(_publisherSettings.ConnectionString, _publisherSettings.Exchange);
+
+            _publisher = new RabbitMqPublisher<TickPrice>(_logFactory, settings)
+                .DisableInMemoryQueuePersistence()
+                .SetSerializer(new GenericRabbitModelConverter<TickPrice>())
+                .SetPublishStrategy(new DefaultFanoutPublishStrategy(settings))
+                .PublishSynchronously()
+                .Start();
         }
 
         public void Stop()
         {
-            _publisher.Stop();
+            _publisher?.Stop();
         }
 
         public void Dispose()
         {
-            _publisher.Dispose();
+            _publisher?.Dispose();
         }
     }
 }

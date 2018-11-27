@@ -2,8 +2,8 @@
 
 namespace Lykke.Service.PlaceOrderBook.Core.Services
 {
-    public interface IOrderbookSourceService
+    public interface IOrderBookSourceService
     {
-        void Configure(OrderbookSourceConfiguration configuration);
+        void Configure(OrderBookSourceConfiguration configuration);
     }
 }

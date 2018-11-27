@@ -9,9 +9,10 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
     public sealed class GenericRabbitModelConverter<T> : IRabbitMqSerializer<T>, IMessageDeserializer<T>
     {
         private const string Iso8601DateFormat = @"yyyy-MM-ddTHH:mm:ss.fffzzz";
+
         private readonly JsonSerializerSettings _serializeSettings = new JsonSerializerSettings
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
+            ContractResolver = new CamelCasePropertyNamesContractResolver
             {
                 NamingStrategy = new CamelCaseNamingStrategy()
             },
@@ -20,8 +21,7 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
 
         private readonly JsonSerializerSettings _deserializeSettings = new JsonSerializerSettings
         {
-            DateFormatString = Iso8601DateFormat,
-            
+            DateFormatString = Iso8601DateFormat
         };
 
         public byte[] Serialize(T model)

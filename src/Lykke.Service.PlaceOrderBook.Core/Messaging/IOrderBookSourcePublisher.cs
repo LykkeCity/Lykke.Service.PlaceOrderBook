@@ -3,8 +3,8 @@ using Lykke.MatchingEngine.ExchangeModels;
 
 namespace Lykke.Service.PlaceOrderBook.Core.Messaging
 {
-    public interface IOrderbookSourcePublisher
+    public interface IOrderBookSourcePublisher
     { 
-        Task Publish(OrderBook orderbok);
+        Task PublishAsync(OrderBook orderBook);
     }
 }

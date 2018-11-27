@@ -12,11 +12,13 @@ namespace Lykke.Service.PlaceOrderBook
     {
         public AutoMapperProfile()
         {
-            CreateMap<IndexTickPriceModel, IndexTickPrice>();
+            CreateMap<AssetInfoModel, AssetInfo>(MemberList.Destination);
 
-            CreateMap<TickPriceModel, TickPrice>();
+            CreateMap<IndexTickPriceModel, IndexTickPrice>(MemberList.Destination);
 
-            CreateMap<IndexTickPriceBatchModel, IndexTickPriceBatch>(MemberList.Source);
+            CreateMap<TickPriceModel, TickPrice>(MemberList.Destination);
+
+            CreateMap<IndexTickPriceBatchModel, IndexTickPriceBatch>(MemberList.Destination);
         }
     }
 }

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using Lykke.MatchingEngine.ExchangeModels;
 
-namespace Lykke.Service.PlaceOrderBook.Core.Domain.Simulation
+namespace Lykke.Service.PlaceOrderBook.Services
 {
-    public class OrderbookGenerator
+    public static class OrderBookGenerator
     {
         private const double Volume = 100;
 
-        public IReadOnlyList<OrderBook> GenerateOrderBooks(string assetPairId, double ask, double bid, 
+        public static IReadOnlyList<OrderBook> GenerateOrderBooks(string assetPairId, double ask, double bid,
             int count, double priceDelta)
         {
             var list = new List<OrderBook>();
@@ -18,9 +18,9 @@ namespace Lykke.Service.PlaceOrderBook.Core.Domain.Simulation
                 var priceDeviation = (i % 2 == 0 ? -1 : 1) * priceDelta;
 
                 var sellPrice = ask + priceDeviation >= 0 ? ask + priceDeviation : ask;
-                var buyPrice =  bid + priceDeviation >= 0 ? bid + priceDeviation : bid;
+                var buyPrice = bid + priceDeviation >= 0 ? bid + priceDeviation : bid;
 
-                // sell orderbook
+                // sell order book
                 list.Add(new OrderBook
                 {
                     AssetPair = assetPairId,
@@ -35,8 +35,8 @@ namespace Lykke.Service.PlaceOrderBook.Core.Domain.Simulation
                         }
                     }
                 });
-                
-                // buy orderbook
+
+                // buy order book
                 list.Add(new OrderBook
                 {
                     AssetPair = assetPairId,

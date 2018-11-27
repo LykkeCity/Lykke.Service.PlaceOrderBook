@@ -1,12 +1,15 @@
 ﻿using System.Linq;
+using JetBrains.Annotations;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.PlaceOrderBook.Middleware
 {
+    [UsedImplicitly]
     public sealed class AddLykkeAuthorizationHeaderFilter : IOperationFilter
     {
-        private static readonly IParameter[] Params = {
+        private static readonly IParameter[] Params =
+        {
             new NonBodyParameter
             {
                 Name = ClientTokenMiddleware.ClientTokenHeader,
