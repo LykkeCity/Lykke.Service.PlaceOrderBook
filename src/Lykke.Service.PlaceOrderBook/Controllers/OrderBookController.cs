@@ -74,8 +74,8 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         [SwaggerOperation("ReplaceLimitOrder")]
         [ProducesResponseType(typeof(List<LimitOrderStatusModel>), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int) HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> ReplaceLimitOrder([FromBody] OrderModel model, [FromQuery] string clientId,
-            [FromQuery] string assetPair, [FromQuery] string oldOrderId)
+        public async Task<IActionResult> ReplaceLimitOrder([FromBody] Client.Models.OrderBooks.LimitOrderModel model,
+            [FromQuery] string clientId, [FromQuery] string assetPair, [FromQuery] string oldOrderId)
         {
             if (!_settingsService.TrustedClients.Contains(oldOrderId))
                 return BadRequest("Client not supported (not trusted)");

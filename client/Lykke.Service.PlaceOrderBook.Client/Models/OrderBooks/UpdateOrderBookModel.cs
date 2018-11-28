@@ -10,6 +10,6 @@ namespace Lykke.Service.PlaceOrderBook.Client.Models.OrderBooks
         
         public string AssetPair { get; set; }
         
-        public List<OrderModel> Orders { get; set; }
+        public List<LimitOrderModel> Orders { get; set; }
     }
 }
