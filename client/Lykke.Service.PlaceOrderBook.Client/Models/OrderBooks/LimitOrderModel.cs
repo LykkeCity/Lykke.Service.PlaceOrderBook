@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 namespace Lykke.Service.PlaceOrderBook.Client.Models.OrderBooks
 {
     [PublicAPI]
-    public class OrderModel
+    public class LimitOrderModel
     {
         public string TradeType { get; set; }
 
