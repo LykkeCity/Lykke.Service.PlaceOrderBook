@@ -66,7 +66,8 @@ namespace Lykke.Service.PlaceOrderBook
                 .As<IStartable>()
                 .As<IStopable>()
                 .As<IOrderBookSourcePublisher>()
-                .WithParameter("settings", _settings.CurrentValue.PlaceOrderBookService.OrderbookSourceSettings)
+                .WithParameter(
+                    TypedParameter.From(_settings.CurrentValue.PlaceOrderBookService.OrderbookSourceSettings))
                 .AutoActivate()
                 .SingleInstance();
 
@@ -101,7 +102,7 @@ namespace Lykke.Service.PlaceOrderBook
 
             var socketLog = new SocketLogDynamic(i => { },
                 str => Console.WriteLine(DateTime.UtcNow.ToIsoDateTime() + ": " + str));
-            
+
             var endPoint = new IPEndPoint(address, matchingEngineClientSettings.IpEndpoint.Port);
 
             builder.BindMeClient(endPoint, socketLog);
