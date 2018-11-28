@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using Autofac;
 using AzureStorage.Tables;
@@ -59,6 +60,11 @@ namespace Lykke.Service.PlaceOrderBook
             builder.RegisterType<LykkeTradeSubscriber>()
                 .As<IStartable>()
                 .As<IStopable>()
+                .WithParameter(
+                    TypedParameter.From(_settings.CurrentValue.PlaceOrderBookService.LykkeTrade))
+                .WithParameter(
+                    TypedParameter.From<IReadOnlyCollection<string>>(_settings.CurrentValue.PlaceOrderBookService
+                        .TrustedClientIds))
                 .AutoActivate()
                 .SingleInstance();
 

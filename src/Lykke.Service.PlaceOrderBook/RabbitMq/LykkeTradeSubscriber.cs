@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Common;
@@ -14,25 +16,28 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
 {
     public class LykkeTradeSubscriber : IStartable, IStopable
     {
-        private readonly PlaceOrderBookSettings _settings;
+        private readonly ExchangeSettings _exchangeSettings;
+        private readonly IReadOnlyCollection<string> _trustedClients;
         private readonly OrderRepository _orderRepository;
         private readonly ILogFactory _logFactory;
         private RabbitMqSubscriber<LimitOrderMessage> _subscriber;
 
         public LykkeTradeSubscriber(
-            PlaceOrderBookSettings settings,
+            ExchangeSettings exchangeSettings,
+            IReadOnlyCollection<string> trustedClients,
             OrderRepository orderRepository,
             ILogFactory logFactory)
         {
-            _settings = settings;
+            _exchangeSettings = exchangeSettings;
+            _trustedClients = trustedClients;
             _orderRepository = orderRepository;
             _logFactory = logFactory;
         }
 
         public void Start()
         {
-            var settings = RabbitMqSubscriptionSettings.ForSubscriber(_settings.LykkeTrade.ConnectionString,
-                _settings.LykkeTrade.Exchange, _settings.LykkeTrade.QueueSuffix);
+            var settings = RabbitMqSubscriptionSettings.ForSubscriber(_exchangeSettings.ConnectionString,
+                _exchangeSettings.Exchange, _exchangeSettings.QueueSuffix);
 
             _subscriber = new RabbitMqSubscriber<LimitOrderMessage>(_logFactory, settings,
                     new ResilientErrorHandlingStrategy(_logFactory, settings, TimeSpan.FromSeconds(10)))
@@ -47,12 +52,12 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
         {
             foreach (var messageOrder in message.Orders)
             {
-                if (!_settings.TrustedClientIds.Contains(messageOrder.Order.ClientId))
+                if (!_trustedClients.Contains(messageOrder.Order.ClientId))
                     continue;
 
                 if (messageOrder.Order.Status == OrderStatus.InOrderBook)
                 {
-                    var order = new OrderEntity()
+                    var order = new OrderEntity
                     {
                         ClientId = messageOrder.Order.ClientId,
                         OrderId = messageOrder.Order.ExternalId,
