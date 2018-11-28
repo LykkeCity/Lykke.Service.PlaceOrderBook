@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -10,6 +9,7 @@ using Lykke.MatchingEngine.Connector.Models;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.PlaceOrderBook.AzureRepositories.Orders;
+using Lykke.Service.PlaceOrderBook.Services;
 using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
 
 namespace Lykke.Service.PlaceOrderBook.RabbitMq
@@ -17,19 +17,19 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
     public class LykkeTradeSubscriber : IStartable, IStopable
     {
         private readonly ExchangeSettings _exchangeSettings;
-        private readonly IReadOnlyCollection<string> _trustedClients;
+        private readonly SettingsService _settingsService;
         private readonly OrderRepository _orderRepository;
         private readonly ILogFactory _logFactory;
         private RabbitMqSubscriber<LimitOrderMessage> _subscriber;
 
         public LykkeTradeSubscriber(
             ExchangeSettings exchangeSettings,
-            IReadOnlyCollection<string> trustedClients,
+            SettingsService settingsService,
             OrderRepository orderRepository,
             ILogFactory logFactory)
         {
             _exchangeSettings = exchangeSettings;
-            _trustedClients = trustedClients;
+            _settingsService = settingsService;
             _orderRepository = orderRepository;
             _logFactory = logFactory;
         }
@@ -52,7 +52,7 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
         {
             foreach (var messageOrder in message.Orders)
             {
-                if (!_trustedClients.Contains(messageOrder.Order.ClientId))
+                if (!_settingsService.TrustedClients.Contains(messageOrder.Order.ClientId))
                     continue;
 
                 if (messageOrder.Order.Status == OrderStatus.InOrderBook)

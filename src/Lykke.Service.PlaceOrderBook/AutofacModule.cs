@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using Autofac;
 using AzureStorage.Tables;
@@ -57,14 +56,16 @@ namespace Lykke.Service.PlaceOrderBook
 
         private void RegisterRabbit(ContainerBuilder builder)
         {
+            builder.RegisterInstance(new SettingsService(_settings.CurrentValue.PlaceOrderBookService.TrustedClientIds,
+                    _settings.CurrentValue.PlaceOrderBookService.BalanceAssets))
+                .AsSelf()
+                .SingleInstance();
+
             builder.RegisterType<LykkeTradeSubscriber>()
                 .As<IStartable>()
                 .As<IStopable>()
                 .WithParameter(
                     TypedParameter.From(_settings.CurrentValue.PlaceOrderBookService.LykkeTrade))
-                .WithParameter(
-                    TypedParameter.From<IReadOnlyCollection<string>>(_settings.CurrentValue.PlaceOrderBookService
-                        .TrustedClientIds))
                 .AutoActivate()
                 .SingleInstance();
 

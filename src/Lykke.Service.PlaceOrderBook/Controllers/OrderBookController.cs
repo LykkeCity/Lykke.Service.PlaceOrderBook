@@ -7,7 +7,7 @@ using Lykke.MatchingEngine.Connector.Abstractions;
 using Lykke.MatchingEngine.Connector.Abstractions.Models;
 using Lykke.MatchingEngine.Connector.Abstractions.Services;
 using Lykke.Service.PlaceOrderBook.Client.Models.OrderBooks;
-using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
+using Lykke.Service.PlaceOrderBook.Services;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -17,14 +17,14 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
     public class OrderBookController : Controller
     {
         private readonly IMatchingEngineClient _matchingEngineClient;
-        private readonly PlaceOrderBookSettings _settings;
+        private readonly SettingsService _settingsService;
 
         public OrderBookController(
             IMatchingEngineClient matchingEngineClient,
-            PlaceOrderBookSettings settings)
+            SettingsService settingsService)
         {
             _matchingEngineClient = matchingEngineClient;
-            _settings = settings;
+            _settingsService = settingsService;
         }
 
         [HttpPost]
@@ -34,7 +34,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         public async Task<IActionResult> UpdateOrderBook([FromBody] UpdateOrderBookModel model,
             [FromQuery] bool cancelPrevious)
         {
-            if (!_settings.TrustedClientIds.Contains(model.ClientId))
+            if (!_settingsService.TrustedClients.Contains(model.ClientId))
             {
                 return BadRequest("Client not supported (not trusted)");
             }
@@ -77,7 +77,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         public async Task<IActionResult> ReplaceLimitOrder([FromBody] OrderModel model, [FromQuery] string clientId,
             [FromQuery] string assetPair, [FromQuery] string oldOrderId)
         {
-            if (!_settings.TrustedClientIds.Contains(oldOrderId))
+            if (!_settingsService.TrustedClients.Contains(oldOrderId))
                 return BadRequest("Client not supported (not trusted)");
 
             var mlm = new MultiLimitOrderModel()

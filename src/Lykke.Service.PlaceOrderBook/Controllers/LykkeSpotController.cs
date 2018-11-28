@@ -10,7 +10,7 @@ using Lykke.MatchingEngine.Connector.Abstractions.Services;
 using Lykke.Service.Balances.Client;
 using Lykke.Service.PlaceOrderBook.AzureRepositories.Orders;
 using Lykke.Service.PlaceOrderBook.Middleware;
-using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
+using Lykke.Service.PlaceOrderBook.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.PlaceOrderBook.Controllers
@@ -19,18 +19,18 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
     public class LykkeSpotController : Controller
     {
         private readonly IBalancesClient _balancesClient;
-        private readonly PlaceOrderBookSettings _settings;
+        private readonly SettingsService _settingsService;
         private readonly IMatchingEngineClient _matchingEngineClient;
         private readonly OrderRepository _orderRepository;
 
         public LykkeSpotController(
             IBalancesClient balancesClient,
-            PlaceOrderBookSettings settings,
+            SettingsService settingsService,
             IMatchingEngineClient matchingEngineClient,
             OrderRepository orderRepository)
         {
             _balancesClient = balancesClient;
-            _settings = settings;
+            _settingsService = settingsService;
             _matchingEngineClient = matchingEngineClient;
             _orderRepository = orderRepository;
         }
@@ -46,7 +46,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
             var balances = (await _balancesClient.GetClientBalances(clientId))
                 .ToDictionary(e => e.AssetId, e => e);
 
-            response.Wallets = _settings.BalanceAssets.Select(e => new WalletBalanceModel
+            response.Wallets = _settingsService.BalanceAssets.Select(e => new WalletBalanceModel
             {
                 Asset = e,
                 Balance = balances.ContainsKey(e) ? balances[e].Balance : 0,
@@ -143,7 +143,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
             if (order == null)
                 return BadRequest("Order not found");
 
-            var result = new Common.ExchangeAdapter.SpotController.Records.OrderModel
+            var result = new OrderModel
             {
                 Id = order.OrderId,
                 AvgExecutionPrice = order.AvgExecutionPrice,
