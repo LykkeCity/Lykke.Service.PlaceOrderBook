@@ -24,6 +24,8 @@ namespace Lykke.Service.PlaceOrderBook.Validators
             RuleFor(o => o.Bid)
                 .GreaterThan(0)
                 .WithMessage("Bid should be greater than zero.");
+            
+            RuleForEach(o => o.AssetsInfo).SetValidator(new AssetsInfoModelValidator());
         }
     }
 }

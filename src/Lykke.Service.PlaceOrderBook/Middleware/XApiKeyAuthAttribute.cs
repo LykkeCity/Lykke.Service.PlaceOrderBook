@@ -10,7 +10,8 @@ namespace Lykke.Service.PlaceOrderBook.Middleware
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            if (!context.HttpContext.Request.Headers.TryGetValue(ClientTokenMiddleware.ClientTokenHeader, out var h) || h.Count != 1)
+            if (!context.HttpContext.Request.Headers.TryGetValue(ClientTokenMiddleware.ClientTokenHeader, out var h) ||
+                h.Count != 1)
             {
                 context.Result = new BadRequestObjectResult(
                     $"Header {ClientTokenMiddleware.ClientTokenHeader} with single value is required");

@@ -1,7 +1,4 @@
 ﻿using System.Linq;
-using Common.Log;
-using Lykke.Service.PlaceOrderBook.Settings;
-using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +12,7 @@ namespace Lykke.Service.PlaceOrderBook.Middleware
         {
             if (controller.HttpContext.Items.TryGetValue(CredsKey, out var creds))
             {
-                return (string)creds;
+                return (string) creds;
             }
 
             return null;
@@ -23,10 +20,7 @@ namespace Lykke.Service.PlaceOrderBook.Middleware
 
         public const string ClientTokenHeader = "X-API-KEY";
 
-        public static void UseAuthenticationMiddleware(
-            this IApplicationBuilder app,
-            IReloadingManager<AppSettings> appSettings,
-            ILog log)
+        public static void UseAuthenticationMiddleware(this IApplicationBuilder app)
         {
             app.Use(async (context, next) =>
             {

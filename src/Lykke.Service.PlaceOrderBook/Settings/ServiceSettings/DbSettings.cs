@@ -1,7 +1,9 @@
-﻿using Lykke.SettingsReader.Attributes;
+﻿using JetBrains.Annotations;
+using Lykke.SettingsReader.Attributes;
 
 namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
 {
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class DbSettings
     {
         [AzureTableCheck]

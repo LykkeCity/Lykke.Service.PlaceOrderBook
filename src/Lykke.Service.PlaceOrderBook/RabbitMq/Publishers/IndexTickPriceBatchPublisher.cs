@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Common;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.ExchangeAdapter.Contracts;
+using Lykke.Common.Log;
 using Lykke.Service.CryptoIndex.Contract;
 using Lykke.Service.PlaceOrderBook.Core;
 using Lykke.Service.PlaceOrderBook.Core.Messaging;
@@ -20,23 +20,21 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq.Publishers
         public IndexTickPriceBatchPublisher(
             TickPricePublisher tickPricePublisher,
             IndexTickPricePublisher indexTickPricePublisher,
-            ILog log)
+            ILogFactory logFactory)
         {
             _tickPricePublisher = tickPricePublisher;
             _indexTickPricePublisher = indexTickPricePublisher;
-            _log = log.CreateComponentScope(nameof(IndexTickPricePublisher));
+            _log = logFactory.CreateLog(this);
         }
 
-        public async Task Publish(IndexTickPriceBatch tickPriceBatch)
+        public async Task PublishAsync(IndexTickPriceBatch tickPriceBatch)
         {
             foreach (TickPrice tickPrice in tickPriceBatch.TickPrices)
             {
                 if (tickPrice.Timestamp == DateTime.MinValue)
-                {
                     tickPrice.Timestamp = DateTime.UtcNow;
-                }
 
-                await _log.WriteInfoAsync(nameof(Publish), tickPrice.ToJson(), "Publishing tick price.");
+                _log.Info("Publishing tick price.", tickPrice);
 
                 await _tickPricePublisher.Publish(tickPrice);
             }
@@ -44,11 +42,9 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq.Publishers
             foreach (IndexTickPrice indexTickPrice in tickPriceBatch.IndexTickPrices)
             {
                 if (indexTickPrice.Timestamp == DateTime.MinValue)
-                {
                     indexTickPrice.Timestamp = DateTime.UtcNow;
-                }
 
-                await _log.WriteInfoAsync(nameof(Publish), indexTickPrice.ToJson(), "Publishing index tick price.");
+                _log.Info("Publishing index tick price.", indexTickPrice);
 
                 await _indexTickPricePublisher.Publish(indexTickPrice);
             }

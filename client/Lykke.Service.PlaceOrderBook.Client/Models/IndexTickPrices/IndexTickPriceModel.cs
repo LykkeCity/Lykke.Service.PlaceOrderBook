@@ -11,6 +11,14 @@ namespace Lykke.Service.PlaceOrderBook.Client.Models.IndexTickPrices
     public class IndexTickPriceModel
     {
         /// <summary>
+        /// Initializes an new instance of <see cref="IndexTickPriceModel"/>.
+        /// </summary>
+        public IndexTickPriceModel()
+        {
+            AssetsInfo = new AssetInfoModel[0];
+        }
+        
+        /// <summary>
         /// The name of the index source.
         /// </summary>
         public string Source { get; set; }
@@ -38,6 +46,6 @@ namespace Lykke.Service.PlaceOrderBook.Client.Models.IndexTickPrices
         /// <summary>
         /// A collection of weights of assets in the current index.
         /// </summary>
-        public IDictionary<string, decimal> Weights { get; set; }
+        public IReadOnlyCollection<AssetInfoModel> AssetsInfo { get; set; }
     }
 }

@@ -20,9 +20,9 @@ namespace Lykke.Service.PlaceOrderBook.Models
         [Range(0, Int32.MaxValue)]
         public double PriceDelta { get; set; }
 
-        public OrderbookSourceConfiguration ToModel()
+        public OrderBookSourceConfiguration ToModel()
         {
-            return new OrderbookSourceConfiguration(Source, AssetPairId, Count, PriceDelta);
+            return new OrderBookSourceConfiguration(Source, AssetPairId, Count, PriceDelta);
         }
     }
 }

@@ -2,48 +2,44 @@
 using System.Threading.Tasks;
 using Autofac;
 using Common;
-using Common.Log;
+using Lykke.Common.Log;
 using Lykke.MatchingEngine.Connector.Messages;
 using Lykke.MatchingEngine.Connector.Models;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
-using Lykke.Service.PlaceOrderBook.AzureRepositories;
+using Lykke.Service.PlaceOrderBook.AzureRepositories.Orders;
 using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
 
 namespace Lykke.Service.PlaceOrderBook.RabbitMq
 {
-    public class LykkeTradeSubscruber  : IStartable, IStopable
+    public class LykkeTradeSubscriber : IStartable, IStopable
     {
         private readonly PlaceOrderBookSettings _settings;
         private readonly OrderRepository _orderRepository;
-        private readonly ILog _log;
+        private readonly ILogFactory _logFactory;
         private RabbitMqSubscriber<LimitOrderMessage> _subscriber;
 
-        public LykkeTradeSubscruber(PlaceOrderBookSettings settings, OrderRepository orderRepository, ILog log)
+        public LykkeTradeSubscriber(
+            PlaceOrderBookSettings settings,
+            OrderRepository orderRepository,
+            ILogFactory logFactory)
         {
             _settings = settings;
             _orderRepository = orderRepository;
-            _log = log;
+            _logFactory = logFactory;
         }
 
         public void Start()
         {
-            var settings = new RabbitMqSubscriptionSettings
-            {
-                IsDurable = false,
-                DeadLetterExchangeName = null,
-                ExchangeName = _settings.LykkeTrade.Exchange,
-                QueueName = $"{_settings.LykkeTrade.Exchange}.{_settings.LykkeTrade.QueueSuffix}",
-                ConnectionString = _settings.LykkeTrade.ConnectionString
-            };
+            var settings = RabbitMqSubscriptionSettings.ForSubscriber(_settings.LykkeTrade.ConnectionString,
+                _settings.LykkeTrade.Exchange, _settings.LykkeTrade.QueueSuffix);
 
-            _subscriber = new RabbitMqSubscriber<LimitOrderMessage>(settings,
-                    new ResilientErrorHandlingStrategy(_log, settings, TimeSpan.FromSeconds(10)))
+            _subscriber = new RabbitMqSubscriber<LimitOrderMessage>(_logFactory, settings,
+                    new ResilientErrorHandlingStrategy(_logFactory, settings, TimeSpan.FromSeconds(10)))
                 .SetMessageDeserializer(new JsonMessageDeserializer<LimitOrderMessage>())
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
                 .CreateDefaultBinding()
-                .SetLogger(_log)
                 .Start();
         }
 
@@ -53,7 +49,7 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
             {
                 if (!_settings.TrustedClientIds.Contains(messageOrder.Order.ClientId))
                     continue;
-                
+
                 if (messageOrder.Order.Status == OrderStatus.InOrderBook)
                 {
                     var order = new OrderEntity()
@@ -78,10 +74,11 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
                 if (messageOrder.Order.Status == OrderStatus.Matched ||
                     messageOrder.Order.Status == OrderStatus.Processing)
                 {
-                    var order = await _orderRepository.GetOrder(messageOrder.Order.ClientId, messageOrder.Order.ExternalId);
+                    var order = await _orderRepository.GetOrder(messageOrder.Order.ClientId,
+                        messageOrder.Order.ExternalId);
                     if (order == null)
                     {
-                        order = new OrderEntity()
+                        order = new OrderEntity
                         {
                             ClientId = messageOrder.Order.ClientId,
                             OrderId = messageOrder.Order.ExternalId,
@@ -98,7 +95,7 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
                             SumExecutePrice = 0
                         };
                         await _orderRepository.AddOrReplace(order);
-                    };
+                    }
 
                     foreach (var trade in messageOrder.Trades)
                     {
@@ -118,13 +115,13 @@ namespace Lykke.Service.PlaceOrderBook.RabbitMq
 
                 if (messageOrder.Order.Status == OrderStatus.Cancelled)
                 {
-                    var order = await _orderRepository.GetOrder(messageOrder.Order.ClientId, messageOrder.Order.ExternalId);
+                    var order = await _orderRepository.GetOrder(messageOrder.Order.ClientId,
+                        messageOrder.Order.ExternalId);
                     if (order == null) continue;
 
                     order.Status = "Canceled";
                     await _orderRepository.AddOrReplace(order);
                 }
-
             }
         }
 
