@@ -12,8 +12,7 @@ namespace Lykke.Service.PlaceOrderBook
     {
         public AutoMapperProfile()
         {
-            CreateMap<AssetInfoModel, AssetInfo>(MemberList.Destination)
-                .ConvertUsing(o => new AssetInfo(o.AssetId, o.Weight, o.Price, o.IsDisabled));
+            CreateMap<AssetInfoModel, AssetInfo>(MemberList.Destination);
 
             CreateMap<IndexTickPriceModel, IndexTickPrice>(MemberList.Destination);
 
