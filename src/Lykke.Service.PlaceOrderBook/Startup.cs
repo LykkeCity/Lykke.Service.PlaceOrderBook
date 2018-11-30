@@ -28,6 +28,11 @@ namespace Lykke.Service.PlaceOrderBook
                     Mapper.Initialize(cfg => { cfg.AddProfiles(typeof(AutoMapperProfile)); });
 
                     Mapper.AssertConfigurationIsValid();
+
+                    XApiKeyAuthAttribute.Credentials = settings.CurrentValue
+                        .PlaceOrderBookService
+                        .TrustedClientIds
+                        .ToDictionary(e => e, e => e);
                 };
 
                 options.Swagger = swagger => { swagger.OperationFilter<AddLykkeAuthorizationHeaderFilter>(); };
@@ -38,14 +43,6 @@ namespace Lykke.Service.PlaceOrderBook
                     logs.AzureTableName = "PlaceOrderBookLog";
                     logs.AzureTableConnectionStringResolver = settings =>
                         settings.PlaceOrderBookService.Db.LogsConnString;
-                };
-
-                options.Extend = (collection, appSettings) =>
-                {
-                    XApiKeyAuthAttribute.Credentials = appSettings.CurrentValue
-                        .PlaceOrderBookService
-                        .TrustedClientIds
-                        .ToDictionary(e => e, e => e);
                 };
             });
         }
