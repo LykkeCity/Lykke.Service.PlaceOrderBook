@@ -61,14 +61,6 @@ namespace Lykke.Service.PlaceOrderBook
                 .AsSelf()
                 .SingleInstance();
 
-            builder.RegisterType<LykkeTradeSubscriber>()
-                .As<IStartable>()
-                .As<IStopable>()
-                .WithParameter(
-                    TypedParameter.From(_settings.CurrentValue.PlaceOrderBookService.LykkeTrade))
-                .AutoActivate()
-                .SingleInstance();
-
             builder.RegisterType<OrderBookSourcePublisher>()
                 .As<IStartable>()
                 .As<IStopable>()
