@@ -9,13 +9,11 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
     {
         public DbSettings Db { get; set; }
 
-        public MatchingEngineSettings MatchingEngine { get; set;  }
+        public MatchingEngineSettings MatchingEngine { get; set; }
 
         public List<string> TrustedClientIds { get; set; }
 
         public List<string> BalanceAssets { get; set; }
-
-        public ExchangeSettings LykkeTrade { get; set; }
 
         public OrderbookSourceSettings OrderbookSourceSettings { get; set; }
 
@@ -34,16 +32,6 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
         public int Port { get; set; }
     }
 
-    public class ExchangeSettings
-    {
-        [AmqpCheck]
-        public string ConnectionString { get; set; }
-
-        public string Exchange { get; set; }
-
-        public string QueueSuffix { get; set; }
-    }
-
     public class BalancesServiceClient
     {
         [HttpCheck("api/isalive")]
@@ -52,8 +40,7 @@ namespace Lykke.Service.PlaceOrderBook.Settings.ServiceSettings
 
     public class OrderbookSourceSettings
     {
-        [AmqpCheck]
-        public string ConnectionString { get; set; }
+        [AmqpCheck] public string ConnectionString { get; set; }
         public string Exchange { get; set; }
     }
 }

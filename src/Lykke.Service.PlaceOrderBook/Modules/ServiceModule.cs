@@ -81,12 +81,6 @@ namespace Lykke.Service.PlaceOrderBook.Modules
                         AzureTableStorage<OrderEntity>.Create(_settings.Nested(o => o.Db.DataConnString), "PlaceOrderSpotOrders", _log)))
                 .SingleInstance();
 
-            builder.RegisterType<LykkeTradeSubscruber>()
-                .As<IStartable>()
-                .As<IStopable>()
-                .AutoActivate()
-                .SingleInstance();
-
             builder.RegisterType<OrderbookSourcePublisher>()
                 .As<IStartable>()
                 .As<IStopable>()
