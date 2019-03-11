@@ -1,17 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>Lykke.Service.PlaceOrderBook.Core</AssemblyName>
-    <RootNamespace>Lykke.Service.PlaceOrderBook.Core</RootNamespace>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <Version>1.0.0</Version>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="7.0.4" />
+    <PackageReference Include="Lykke.Common" Version="7.3.1" />
     <PackageReference Include="Lykke.Common.ExchangeAdapter" Version="1.1.0" />
     <PackageReference Include="Lykke.MatchingEngine.ExchangeModels" Version="1.0.3" />
     <PackageReference Include="Lykke.Service.CryptoIndex.Contract" Version="0.1.1" />
   </ItemGroup>
-
 </Project>

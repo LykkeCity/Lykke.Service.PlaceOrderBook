@@ -8,11 +8,10 @@ using Lykke.Common.ExchangeAdapter.SpotController.Records;
 using Lykke.MatchingEngine.Connector.Abstractions.Models;
 using Lykke.MatchingEngine.Connector.Abstractions.Services;
 using Lykke.Service.Balances.Client;
-using Lykke.Service.PlaceOrderBook.AzureRepositories;
+using Lykke.Service.PlaceOrderBook.AzureRepositories.Orders;
 using Lykke.Service.PlaceOrderBook.Middleware;
-using Lykke.Service.PlaceOrderBook.Settings.ServiceSettings;
+using Lykke.Service.PlaceOrderBook.Services;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.PlaceOrderBook.Controllers
 {
@@ -20,43 +19,45 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
     public class LykkeSpotController : Controller
     {
         private readonly IBalancesClient _balancesClient;
-        private readonly PlaceOrderBookSettings _settings;
-        private readonly IMatchingEngineClient _meclient;
+        private readonly SettingsService _settingsService;
+        private readonly IMatchingEngineClient _matchingEngineClient;
         private readonly OrderRepository _orderRepository;
 
-        public LykkeSpotController(IBalancesClient balancesClient, PlaceOrderBookSettings settings, IMatchingEngineClient meclient,
+        public LykkeSpotController(
+            IBalancesClient balancesClient,
+            SettingsService settingsService,
+            IMatchingEngineClient matchingEngineClient,
             OrderRepository orderRepository)
         {
             _balancesClient = balancesClient;
-            _settings = settings;
-            _meclient = meclient;
+            _settingsService = settingsService;
+            _matchingEngineClient = matchingEngineClient;
             _orderRepository = orderRepository;
         }
 
-        [HttpGet("getWallets")]
         [XApiKeyAuth]
-        [SwaggerOperation("GetWallets")]
+        [HttpGet("getWallets")]
         public async Task<GetWalletsResponse> GetWallets()
         {
-            var responce = new GetWalletsResponse();
+            var response = new GetWalletsResponse();
 
             var clientId = this.ClientId();
 
-            var balaces = (await _balancesClient.GetClientBalances(clientId)).ToDictionary(e => e.AssetId, e => e);
+            var balances = (await _balancesClient.GetClientBalances(clientId))
+                .ToDictionary(e => e.AssetId, e => e);
 
-            responce.Wallets = _settings.BalanceAssets.Select(e => new WalletBalanceModel()
+            response.Wallets = _settingsService.BalanceAssets.Select(e => new WalletBalanceModel
             {
                 Asset = e,
-                Balance = balaces.ContainsKey(e) ? balaces[e].Balance : 0,
-                Reserved = balaces.ContainsKey(e) ? balaces[e].Reserved : 0
+                Balance = balances.ContainsKey(e) ? balances[e].Balance : 0,
+                Reserved = balances.ContainsKey(e) ? balances[e].Reserved : 0
             }).ToList();
 
-            return responce;
+            return response;
         }
 
-        [HttpGet("GetLimitOrders")]
         [XApiKeyAuth]
-        [SwaggerOperation("GetOrders")]
+        [HttpGet("GetLimitOrders")]
         [ProducesResponseType(typeof(GetLimitOrdersResponse), 200)]
         public IActionResult GetOrders(CancellationToken ct)
         {
@@ -68,32 +69,35 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         public async Task<IActionResult> CreateLimitOrder([FromBody] LimitOrderRequest order)
         {
             var orderId = Guid.NewGuid().ToString();
-            var mlm = new MultiLimitOrderModel()
+
+            var mlm = new MultiLimitOrderModel
             {
                 AssetId = order.Instrument,
                 ClientId = this.ClientId(),
                 CancelMode = CancelMode.BothSides,
                 CancelPreviousOrders = false,
                 Id = Guid.NewGuid().ToString(),
-                Orders = new List<MultiOrderItemModel> {
-                    new MultiOrderItemModel()
-                        {
-                            Id = orderId,
-                            OrderAction = order.TradeType == TradeType.Buy ? OrderAction.Buy : OrderAction.Sell,
-                            Fee = null,
-                            OldId = null,
-                            Price = (double)order.Price,
-                            Volume = (double)order.Volume
-                        }
+                Orders = new List<MultiOrderItemModel>
+                {
+                    new MultiOrderItemModel
+                    {
+                        Id = orderId,
+                        OrderAction = order.TradeType == TradeType.Buy ? OrderAction.Buy : OrderAction.Sell,
+                        Fee = null,
+                        OldId = null,
+                        Price = (double) order.Price,
+                        Volume = (double) order.Volume
                     }
+                }
             };
 
-            var res = await _meclient.PlaceMultiLimitOrderAsync(mlm);
+            var res = await _matchingEngineClient.PlaceMultiLimitOrderAsync(mlm);
 
             var status = res.Statuses.Any() ? res.Statuses[0].Status : MeStatusCodes.BadRequest;
+
             if (status == MeStatusCodes.Ok)
             {
-                var resp = new OrderIdResponse()
+                var resp = new OrderIdResponse
                 {
                     OrderId = orderId
                 };
@@ -101,33 +105,30 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
                 return Ok(resp);
             }
 
-            return BadRequest($"incorect result: {status}");
+            return BadRequest($"incorrect result: {status}");
         }
 
-        //[HttpPost("cancelOrder")]
-        //[XApiKeyAuth]
-        //[SwaggerOperation("CancelLimitOrder")]
-        //[ProducesResponseType(typeof(CancelLimitOrderResponse), 200)]
-        //public async Task<IActionResult> CancelLimitOrder([FromBody] CancelLimitOrderRequest request)
-        [HttpPost("cancelOrder")]
         [XApiKeyAuth]
+        [HttpPost("cancelOrder")]
         public async Task<IActionResult> CancelOrder([FromBody] CancelLimitOrderRequest request)
         {
             if (request?.OrderId == null)
             {
-                return BadRequest("Incorect parameters - null");
+                return BadRequest("Incorrect parameters - null");
             }
-            await _meclient.CancelLimitOrderAsync(request.OrderId);
-            var resp = new CancelLimitOrderResponse()
+
+            await _matchingEngineClient.CancelLimitOrderAsync(request.OrderId);
+            
+            var resp = new CancelLimitOrderResponse
             {
-                OrderId = request?.OrderId
+                OrderId = request.OrderId
             };
+            
             return Ok(resp);
         }
 
-        [HttpGet("LimitOrderStatus")]
         [XApiKeyAuth]
-        [SwaggerOperation("GetOrderStatus")]
+        [HttpGet("LimitOrderStatus")]
         public async Task<IActionResult> GetOrderStatus(string orderId)
         {
             var order = await _orderRepository.GetOrder(this.ClientId(), orderId);
@@ -142,7 +143,7 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
             if (order == null)
                 return BadRequest("Order not found");
 
-            var result = new OrderModel()
+            var result = new OrderModel
             {
                 Id = order.OrderId,
                 AvgExecutionPrice = order.AvgExecutionPrice,

@@ -2,9 +2,9 @@
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using Common;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.Log;
 using Lykke.Service.PlaceOrderBook.Client.Models.IndexTickPrices;
 using Lykke.Service.PlaceOrderBook.Core;
 using Lykke.Service.PlaceOrderBook.Core.Messaging;
@@ -21,32 +21,30 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
 
         public IndexTickPricesController(
             IIndexTickPriceBatchPublisher indexTickPriceBatchPublisher,
-            ILog log)
+            ILogFactory logFactory)
         {
             _indexTickPriceBatchPublisher = indexTickPriceBatchPublisher;
-            _log = log.CreateComponentScope(nameof(IndexTickPricesController));
+            _log = logFactory.CreateLog(this);
         }
 
         [HttpPost("publish")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> PublishTickPrices([FromBody] IndexTickPriceBatchModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             try
             {
                 var batch = Mapper.Map<IndexTickPriceBatch>(model);
 
-                await _indexTickPriceBatchPublisher.Publish(batch);
+                await _indexTickPriceBatchPublisher.PublishAsync(batch);
             }
             catch (Exception exception)
             {
-                await _log.WriteWarningAsync(nameof(PublishTickPrices), model.ToJson(),
-                    "Error occurred during publishing tick prices.", exception);
+                _log.Warning("Error occurred during publishing tick prices.", exception, model);
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse
                 {
                     ErrorMessage = exception.Message

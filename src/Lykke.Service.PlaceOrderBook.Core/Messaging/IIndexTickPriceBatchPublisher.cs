@@ -4,6 +4,6 @@ namespace Lykke.Service.PlaceOrderBook.Core.Messaging
 {
     public interface IIndexTickPriceBatchPublisher
     {
-        Task Publish(IndexTickPriceBatch indexTickPriceBatch);
+        Task PublishAsync(IndexTickPriceBatch indexTickPriceBatch);
     }
 }
