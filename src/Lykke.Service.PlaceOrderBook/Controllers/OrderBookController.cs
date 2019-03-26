@@ -32,33 +32,69 @@ namespace Lykke.Service.PlaceOrderBook.Controllers
         [ProducesResponseType(typeof(List<LimitOrderStatusModel>), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int) HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UpdateOrderBook([FromBody] UpdateOrderBookModel model,
-            [FromQuery] bool cancelPrevious)
+            [FromQuery] bool cancelPrevious,
+            [FromQuery] long? timeBetweenPlacementMilliseconds)
         {
             if (!_settingsService.TrustedClients.Contains(model.ClientId))
             {
                 return BadRequest("Client not supported (not trusted)");
             }
 
-            var mlm = new MultiLimitOrderModel
+            if (timeBetweenPlacementMilliseconds.HasValue)
             {
-                AssetId = model.AssetPair,
-                ClientId = model.ClientId,
-                CancelMode = CancelMode.BothSides,
-                CancelPreviousOrders = cancelPrevious,
-                Id = Guid.NewGuid().ToString(),
-                Orders = model.Orders.Select(e => new MultiOrderItemModel
+                if (cancelPrevious)
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    OrderAction = e.TradeType == "Buy" ? OrderAction.Buy : OrderAction.Sell,
-                    Fee = null,
-                    OldId = null,
-                    Price = e.Price,
-                    Volume = e.Volume
-                }).ToList()
-            };
+                    await _matchingEngineClient.MassCancelLimitOrdersAsync(new LimitOrderMassCancelModel
+                    {
+                        AssetPairId = model.AssetPair,
+                        ClientId = model.ClientId,
+                        Id = Guid.NewGuid().ToString()
+                    });
+                }
 
-            var res = await _matchingEngineClient.PlaceMultiLimitOrderAsync(mlm);
-            return Ok(res.Statuses.ToList());
+                var result = new List<MeResponseModel>();
+                
+                foreach (var order in model.Orders)
+                {
+                    result.Add(await _matchingEngineClient.PlaceLimitOrderAsync(new Lykke.MatchingEngine.Connector.Abstractions.Models.LimitOrderModel
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        AssetPairId = model.AssetPair,
+                        ClientId = model.ClientId,
+                        CancelPreviousOrders = false,
+                        OrderAction = order.TradeType == "Buy" ? OrderAction.Buy : OrderAction.Sell,
+                        Price = order.Price,
+                        Volume = order.Volume
+                    }));
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(timeBetweenPlacementMilliseconds.Value));
+                }
+
+                return Ok(result);
+            }
+            else
+            {
+                var mlm = new MultiLimitOrderModel
+                {
+                    AssetId = model.AssetPair,
+                    ClientId = model.ClientId,
+                    CancelMode = CancelMode.BothSides,
+                    CancelPreviousOrders = cancelPrevious,
+                    Id = Guid.NewGuid().ToString(),
+                    Orders = model.Orders.Select(e => new MultiOrderItemModel
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        OrderAction = e.TradeType == "Buy" ? OrderAction.Buy : OrderAction.Sell,
+                        Fee = null,
+                        OldId = null,
+                        Price = e.Price,
+                        Volume = e.Volume
+                    }).ToList()
+                };
+
+                var res = await _matchingEngineClient.PlaceMultiLimitOrderAsync(mlm);
+                return Ok(res.Statuses.ToList());
+            }
         }
 
         [HttpPost("Cancel")]
