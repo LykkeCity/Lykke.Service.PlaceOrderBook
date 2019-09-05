@@ -29,6 +29,11 @@ namespace Lykke.Service.PlaceOrderBook.Client.Models.IndexTickPrices
         public string AssetPair { get; set; }
 
         /// <summary>
+        /// The name of the short index.
+        /// </summary>
+        public string ShortIndexName { get; set; }
+
+        /// <summary>
         /// The price of the index (equals to Lykke.Service.CryptoIndex.Contract.IndexTickPrice.Ask).
         /// </summary>
         public decimal Bid { get; set; }
